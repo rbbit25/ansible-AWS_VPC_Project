@@ -1,0 +1,16 @@
+---
+- name: Playbook for VPC
+  hosts: localhost
+  gather_facts: yes
+  
+  vars_files:
+    - region.yaml
+  ignore_errors: yes
+
+  tasks:
+    - name: Create NAT Gateway
+      ec2_vpc_nat_gateway:
+        region: "{{region}}"
+        subnet_id: "{{Pub_Subnet1.subnet.id}}"
+        state: present
+      register: nat_gateway
