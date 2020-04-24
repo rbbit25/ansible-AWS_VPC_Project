@@ -1,0 +1,30 @@
+---
+- name: Playbook for Route table
+  hosts: localhost
+  gather_facts: no
+  ignore_errors: yes
+  vars_files:
+    - region.yaml
+  tasks:
+    - name: Collect VPC info
+      ec2_vpc_net_facts:
+        region: "{{region}}"
+        filters:
+          "tag:Task": VPC
+      register: VPC1
+
+
+    - name: Set up public subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{VPC1.vpcs[0].vpc_id}}"
+        region: "{{region}}"
+        tags:
+          Name: Public
+        subnets:
+          - "{{Pub_Subnet1.subnet.id}}"
+          - "{{Pub_Subnet2.subnet.id}}"
+          - "{{Pub_Subnet3.subnet.id}}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{igw.gateway_id}}"
+      register: public_route_table
