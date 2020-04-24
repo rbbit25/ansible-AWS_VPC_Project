@@ -1,0 +1,35 @@
+---
+- name: Playbook for Route table for  Private
+  hosts: localhost
+  gather_facts: no
+  vars_files:
+    - region.yaml
+
+  tasks:
+    - name: sleep for 60 seconds and continue with play
+      wait_for:
+        timeout: 60
+      delegate_to: localhost
+  
+  
+    - name: Collect VPC info
+      ec2_vpc_net_facts:
+        region: "{{region}}"
+        filters:
+          "tag:Task": VPC
+      register: VPC1
+
+    - name: Set up private subnet route table
+      ec2_vpc_route_table:
+        vpc_id: "{{VPC1.vpcs[0].vpc_id}}"
+        region: "{{region}}"
+        tags:
+          Name: private
+        subnets:
+          - "{{Priv_Subnet1.subnet.id}}"
+          - "{{Priv_Subnet2.subnet.id}}"
+          - "{{Priv_Subnet3.subnet.id}}"
+        routes:
+          - dest: 0.0.0.0/0
+            gateway_id: "{{ nat_gateway.nat_gateway_id}}"
+      register: nat_route_table
